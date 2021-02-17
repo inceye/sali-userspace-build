@@ -1,0 +1,99 @@
+#!/bin/bash
+path_initial=$(pwd)
+
+finish() {
+    log "Exiting"
+    cd "$path_initial" || exit
+    rm -Rf tmp
+}
+
+# logging fn
+log() {
+    local color_on=$'\e[0;32m'
+    local color_off=$'\e[0m'
+    echo "${color_on}[$(date)]${color_off} $*" >&2
+}
+
+# error fn
+fatal() {
+    local color_fatal=$'\033[0;31m'
+    log "${color_fatal} $* Failed!"
+    log "${color_fatal}	Error!"
+    finish
+    exit 1
+}
+
+case "$1" in
+	collect)
+		log "Collecting preferences from .local"
+        ( mkdir tmp || ( rm -rf tmp; mkdir tmp) ) || 
+            fatal "tmp directory creation"
+        cd tmp || fatal "cd tmp"
+        packages_installed=$(cat ~/.local/src/.preflist) || 
+            fatal "Preference list collection"
+        for package in $packages_installed
+        do
+            mkdir "$package" || 
+                fatal mkdir "$package"
+            cp -R ~/.local/src/"$package"/.preferences "$package"/ ||
+                fatal "Preferences copy from .local/src/$package/.preferences"
+        done    
+        zip -r tmp.zip ./* || 
+            fatal "Zip archiving the preferences"
+        cd "$path_initial" || fatal "Initial directory access"
+        case "$2" in
+            "")
+                log "No filename provided"
+                log "Enter the path, you wish to copy your preferences to:"
+                read -r path_out
+                mv tmp/tmp.zip "$path_out" || 
+                    fatal "Copying to the requested path"
+                ;;
+            *)
+                mv tmp/tmp.zip "$2" || 
+                    fatal "Copying to the requested path"
+                ;;
+        esac
+		;;
+	deploy)
+		log "Deploying preferences to .local"
+        ( mkdir tmp || ( rm -rf tmp; mkdir tmp) ) || 
+            fatal "tmp directory creation"
+        mkdir --parents ~/.local/src 
+        case "$2" in
+            "")
+                log "No filename provided"
+                log "Enter the path of your preferences file"
+                read -r path_out
+                unzip "$path_out" -d tmp || 
+                    fatal "Getting the preferences from preferences file"
+                ;;
+            *)
+                unzip "$2" -d tmp || 
+                    fatal "Getting the preferences from preferences file"
+                ;;
+        esac
+        cd tmp || fatal "Cd into tmp directory"
+        for package in * 
+        do
+            mkdir ~/.local/src/"$package" || 
+                log ".local/src/$package already exists"
+            cp -r "$package/." ~/.local/src/"$package"/ ||
+                fatal "Copying preferences to .local/src/$package"
+        done
+        new_preflist=$( (cat ~/.local/src/.preflist; ls -1) | sort | uniq ) ||
+            fatal "New preference list creation"
+        echo "$new_preflist" > ~/.local/src/.preflist ||
+            fatal "Writing new preference list"
+        log "Preferences were successfully deployed"
+        cat ~/.local/src/.preflist
+		;;
+	*)
+		log 'Invalid input'
+        log 'Expected a single argument'
+        log './pref [deploy/collect]'
+        fatal 'Argument check'
+        ;;
+esac
+
+finish
