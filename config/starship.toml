@@ -1,0 +1,157 @@
+format = """
+[┌─\\[](red)\
+$character\
+[\\]](red)\
+[─\\[](red)\
+$username\
+[@](bold yellow)\
+$hostname\
+[\\]](red)\
+[─\\[](red)\
+$directory\
+[\\]](red)\
+$git_branch\
+$git_commit\
+$git_state\
+$git_status\
+$docker_context\
+$package\
+$cmake\
+$dart\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$golang\
+$helm\
+$java\
+$julia\
+$nim\
+$nodejs\
+$ocaml\
+$perl\
+$php\
+$purescript\
+$python\
+$ruby\
+$rust\
+$swift\
+$lua\
+$terraform\
+$zig\
+$nix_shell\
+$conda\
+$memory_usage\
+$aws\
+$gcloud\
+$openstack\
+$env_var\
+$crystal\
+$custom\
+$cmd_duration\
+$line_break\
+
+[└](red)\
+$jobs\
+$time\
+$status\
+[─╼ ](red)\
+${custom.nonroot}\
+${custom.isroot}\
+"""
+
+[username]
+	style_user = "bright-white"
+	style_root = "red bold"
+	format = "[$user]($style)"
+	disabled = false
+	show_always = true
+
+[hostname]
+	ssh_only = false
+	format =  "[$hostname](bold bright-cyan)"
+	trim_at = "-"
+	disabled = false
+
+[character]
+	success_symbol = "[>](bold green)"
+	error_symbol = "[✗](bold red)"
+	vicmd_symbol = "[V](bold green)"
+	format = "$symbol"
+
+[directory]
+	truncation_length = 3
+	truncation_symbol = "…/"
+	truncate_to_repo = false
+	style = "green"
+	format = "[$path]($style)[$read_only]($read_only_style)"
+
+[git_branch]
+	symbol = " "
+	format = "[─\\[](red)[$symbol$branch]($style)[\\]](red)"
+
+[git_commit]
+	commit_hash_length = 4
+	format = "[─\\[](red)[$hash]($style)[\\]](red)"
+
+[git_state]
+	format = '[─\[](red)[$state\($progress_current/$progress_total\)]($style)[\]](red)'
+
+[git_status]
+	format = '([─\[](red)[$all_status$ahead_behind]($style)[\]](red))'
+
+[docker_context]
+	format = "[─\\[](red)[$symbol$context]($style)[\\]](red)"
+	symbol = "🐳"
+
+[package]
+	format = "[─\\[](red)[$symbol$version]($style)[\\]](red)"
+	symbol = "📦"
+
+[cmake]
+	format = "[─\\[](red)[$symbol$version]($style)[\\]](red)"
+	symbol = "C "
+
+[java]
+	format = "[─\\[](red)[${symbol}${version}]($style)[\\]](red)"
+	symbol = "☕"
+
+[python]
+	format = '[─\[](red)[${symbol}${pyenv_prefix}${version}( \($virtualenv\))]($style)[\]](red)'
+	symbol = "🐍"
+
+[rust]
+	format = "[─\\[](red)[$symbol$version]($style)[\\]](red)"
+	symbol = "🦀"
+
+[nodejs]
+	format = "[─\\[](red)[$symbol$version]($style)[\\]](red)"
+	symbol = "⬢ "
+
+[cmd_duration]
+	format = "[─\\[](red)⏱️ [$duration]($style)[\\]](red)"
+
+[time]
+	disabled = false
+	format = "[─\\[](red)[$time]($style)[\\]](red)"
+	use_12hr = true
+
+[jobs]
+	format = "[─\\[](red)[$symbol$number]($style)[\\]](red)"
+
+[status]
+	disabled = false
+	format = "[─\\[](red)[$symbol$status]($style)[\\]](red)"
+	symbol = "E:"
+
+[custom.nonroot]
+	command = "echo foo"  # shows output of command
+	files = ["*"]       # can specify filters
+	when = """ test "$USER" != "root" """
+	format = "[\\$ ](yellow bold)"
+
+[custom.isroot]
+	command = "echo foo"  # shows output of command
+	files = ["*"]       # can specify filters
+	when = """ test "$USER" == "root" """
+	format = "[# ](yellow bold)"
